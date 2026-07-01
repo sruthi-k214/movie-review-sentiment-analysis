@@ -12,10 +12,11 @@ import re
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from nltk.stem import SnowballStemmer
+
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.model_selection import train_test_split
 from sklearn.naive_bayes import GaussianNB,MultinomialNB,BernoulliNB
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 import joblib
 # nltk.download() # Download "punkt" package
 
@@ -24,15 +25,20 @@ import joblib
 
 # 1.1 Load dataset
 dataset = pd.read_csv('Dataset/IMDB.csv')
-print(f"Dataset shape : {dataset.shape}\n")
+print("="*60)
+print("IMDb Movie Reviews Dataset Loaded Successfully")
+print("="*60)
+print(f"Dataset Shape : {dataset.shape}\n")
 print(f"Dataset head : \n{dataset.head()}\n")
 
 # 1.2 Output counts
 print(f"Dataset output counts:\n{dataset.sentiment.value_counts()}\n")
 
 # 1.3 Encode output column into binary
-dataset.sentiment.replace('positive', 1, inplace=True)
-dataset.sentiment.replace('negative', 0, inplace=True)
+dataset["sentiment"] = dataset["sentiment"].map({
+    "positive": 1,
+    "negative": 0
+})
 print(f"Dataset head after encoding :\n{dataset.head(10)}\n")
 
 ## 2 | Data cleaning ##
@@ -97,7 +103,10 @@ X = np.array(dataset.iloc[:,0].values)
 y = np.array(dataset.sentiment.values)
 cv = CountVectorizer(max_features = 2000)
 X = cv.fit_transform(dataset.review).toarray()
-print(f"=== Bag of words ===\n")
+
+print("\n" + "="*60)
+print("Feature Extraction using Bag of Words")
+print("="*60)
 print(f"BOW X shape : {X.shape}")
 print(f"BOW y shape : {y.shape}\n")
 
@@ -124,7 +133,14 @@ ypb = bnb.predict(X_test)
 
 ## 4 | Model Evaluation ##
 """Evaluate model performance"""
-print(f"Gaussian accuracy    =  {round(accuracy_score(y_test, ypg), 2)*100} %")
-print(f"Multinomial accuracy =  {round(accuracy_score(y_test, ypm), 2)*100} %")
-print(f"Bernoulli accuracy   =  {round(accuracy_score(y_test, ypb), 2)*100} %")
+print("\n" + "="*60)
+print("Model Evaluation Results")
+print("="*60)
+
+print(f"Gaussian Naive Bayes Accuracy    : {round(accuracy_score(y_test, ypg),2)*100}%")
+print(f"Multinomial Naive Bayes Accuracy : {round(accuracy_score(y_test, ypm),2)*100}%")
+print("\nClassification Report (Multinomial Naive Bayes)")
+print(classification_report(y_test, ypm))
+print("Confusion Matrix")
+print(confusion_matrix(y_test, ypm))
 
